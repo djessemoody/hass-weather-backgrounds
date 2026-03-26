@@ -29,8 +29,9 @@ const DEFAULT_BACKGROUNDS = {
 };
 
 const DEFAULT_CONFIG = {
-  entity: null, // null = auto-discover
+  entity: null,
   backgrounds: DEFAULT_BACKGROUNDS,
+  effects: {},
   fallback: null,
   dashboards: null,
   style: "center / cover no-repeat",
@@ -38,6 +39,312 @@ const DEFAULT_CONFIG = {
 };
 
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".ogg"];
+
+// ── Built-in effects ───────────────────────────────────────────────
+
+const BUILT_IN_EFFECTS = {
+  snowfall: (container) => {
+    const canvas = document.createElement("canvas");
+    Object.assign(canvas.style, {
+      position: "fixed", top: "0", left: "0",
+      width: "100vw", height: "100vh",
+      pointerEvents: "none", zIndex: "0",
+    });
+    container.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    const flakes = [];
+    const COUNT = 120;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    for (let i = 0; i < COUNT; i++) {
+      flakes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 3 + 1,
+        speed: Math.random() * 1.5 + 0.5,
+        wind: Math.random() * 0.5 - 0.25,
+        opacity: Math.random() * 0.6 + 0.4,
+      });
+    }
+
+    let animId;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const f of flakes) {
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${f.opacity})`;
+        ctx.fill();
+        f.y += f.speed;
+        f.x += f.wind;
+        if (f.y > canvas.height) { f.y = -5; f.x = Math.random() * canvas.width; }
+        if (f.x > canvas.width) f.x = 0;
+        if (f.x < 0) f.x = canvas.width;
+      }
+      animId = requestAnimationFrame(draw);
+    }
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+      canvas.remove();
+    };
+  },
+
+  rain: (container) => {
+    const canvas = document.createElement("canvas");
+    Object.assign(canvas.style, {
+      position: "fixed", top: "0", left: "0",
+      width: "100vw", height: "100vh",
+      pointerEvents: "none", zIndex: "0",
+    });
+    container.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    const drops = [];
+    const COUNT = 200;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    for (let i = 0; i < COUNT; i++) {
+      drops.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        len: Math.random() * 15 + 10,
+        speed: Math.random() * 8 + 6,
+        opacity: Math.random() * 0.3 + 0.1,
+      });
+    }
+
+    let animId;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "rgba(174, 194, 224, 0.5)";
+      ctx.lineWidth = 1;
+      for (const d of drops) {
+        ctx.globalAlpha = d.opacity;
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(d.x + 1, d.y + d.len);
+        ctx.stroke();
+        d.y += d.speed;
+        d.x += 0.5;
+        if (d.y > canvas.height) {
+          d.y = -d.len;
+          d.x = Math.random() * canvas.width;
+        }
+      }
+      ctx.globalAlpha = 1;
+      animId = requestAnimationFrame(draw);
+    }
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+      canvas.remove();
+    };
+  },
+
+  lightning_flash: (container) => {
+    const overlay = document.createElement("div");
+    Object.assign(overlay.style, {
+      position: "fixed", top: "0", left: "0",
+      width: "100vw", height: "100vh",
+      pointerEvents: "none", zIndex: "0",
+      backgroundColor: "white", opacity: "0",
+      transition: "opacity 0.1s",
+    });
+    container.appendChild(overlay);
+
+    let timeout;
+    function flash() {
+      const delay = Math.random() * 8000 + 4000;
+      timeout = setTimeout(() => {
+        overlay.style.opacity = String(Math.random() * 0.3 + 0.1);
+        setTimeout(() => {
+          overlay.style.opacity = "0";
+          setTimeout(() => {
+            if (Math.random() > 0.5) {
+              overlay.style.opacity = String(Math.random() * 0.15 + 0.05);
+              setTimeout(() => { overlay.style.opacity = "0"; }, 80);
+            }
+          }, 100);
+        }, 80);
+        flash();
+      }, delay);
+    }
+    flash();
+
+    return () => {
+      clearTimeout(timeout);
+      overlay.remove();
+    };
+  },
+
+  fog_drift: (container) => {
+    const el = document.createElement("div");
+    Object.assign(el.style, {
+      position: "fixed", top: "0", left: "0",
+      width: "200vw", height: "100vh",
+      pointerEvents: "none", zIndex: "0",
+      background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 20%, rgba(255,255,255,0.15) 40%, rgba(255,255,255,0.08) 60%, rgba(255,255,255,0) 80%)",
+      animation: "wb-fog-drift 30s linear infinite",
+    });
+    container.appendChild(el);
+
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes wb-fog-drift {
+        0% { transform: translateX(-50%); }
+        100% { transform: translateX(0%); }
+      }
+    `;
+    container.appendChild(style);
+
+    return () => {
+      el.remove();
+      style.remove();
+    };
+  },
+
+  stars: (container) => {
+    const canvas = document.createElement("canvas");
+    Object.assign(canvas.style, {
+      position: "fixed", top: "0", left: "0",
+      width: "100vw", height: "100vh",
+      pointerEvents: "none", zIndex: "0",
+    });
+    container.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    const stars = [];
+    const COUNT = 150;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    for (let i = 0; i < COUNT; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5 + 0.5,
+        twinkleSpeed: Math.random() * 0.02 + 0.005,
+        phase: Math.random() * Math.PI * 2,
+      });
+    }
+
+    let animId;
+    let t = 0;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      t += 1;
+      for (const s of stars) {
+        const opacity = 0.3 + 0.7 * Math.abs(Math.sin(t * s.twinkleSpeed + s.phase));
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+        ctx.fill();
+      }
+      animId = requestAnimationFrame(draw);
+    }
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+      canvas.remove();
+    };
+  },
+
+  wind_streaks: (container) => {
+    const canvas = document.createElement("canvas");
+    Object.assign(canvas.style, {
+      position: "fixed", top: "0", left: "0",
+      width: "100vw", height: "100vh",
+      pointerEvents: "none", zIndex: "0",
+    });
+    container.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    const streaks = [];
+    const COUNT = 30;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    for (let i = 0; i < COUNT; i++) {
+      streaks.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        len: Math.random() * 80 + 40,
+        speed: Math.random() * 6 + 3,
+        opacity: Math.random() * 0.08 + 0.02,
+        width: Math.random() * 1.5 + 0.5,
+      });
+    }
+
+    let animId;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const s of streaks) {
+        ctx.globalAlpha = s.opacity;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.lineWidth = s.width;
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x + s.len, s.y - 2);
+        ctx.stroke();
+        s.x += s.speed;
+        if (s.x > canvas.width + s.len) {
+          s.x = -s.len;
+          s.y = Math.random() * canvas.height;
+        }
+      }
+      ctx.globalAlpha = 1;
+      animId = requestAnimationFrame(draw);
+    }
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+      canvas.remove();
+    };
+  },
+};
+
+// Default effects for weather states (use built-in names)
+const DEFAULT_EFFECTS = {
+  snowy: "snowfall",
+  "snowy-rainy": "snowfall",
+  rainy: "rain",
+  pouring: "rain",
+  lightning: "lightning_flash",
+  "lightning-rainy": "lightning_flash",
+  fog: "fog_drift",
+  "clear-night": "stars",
+  windy: "wind_streaks",
+  "windy-variant": "wind_streaks",
+  hail: "rain",
+};
 
 // ── DOM traversal helpers ──────────────────────────────────────────
 
@@ -59,7 +366,6 @@ function findViewBackground() {
 // ── Config resolution ──────────────────────────────────────────────
 
 function getDashboardConfig() {
-  // Read weather_backgrounds from the current view's config in the dashboard YAML
   try {
     const huiRoot = findHuiRoot();
     if (!huiRoot) return null;
@@ -67,13 +373,11 @@ function getDashboardConfig() {
     const lovelace = huiRoot.lovelace;
     if (!lovelace?.config?.views) return null;
 
-    // Find the current view index
     const curView = huiRoot._curView;
     if (curView === undefined || curView === "hass-unused-entities") return null;
 
     const viewConfig = lovelace.config.views[curView];
     const wb = viewConfig?.weather_backgrounds;
-    // Support: weather_backgrounds: true, weather_backgrounds: {}, weather_backgrounds:
     if (wb === undefined) return null;
     if (wb === true || wb === null) return {};
     return wb;
@@ -83,7 +387,6 @@ function getDashboardConfig() {
 }
 
 function getConfig() {
-  // Priority: dashboard YAML > window config > defaults
   const dashConfig = getDashboardConfig() || {};
   const windowConfig = window.weatherBackgroundsConfig || {};
 
@@ -95,6 +398,11 @@ function getConfig() {
       ...DEFAULT_BACKGROUNDS,
       ...(windowConfig.backgrounds || {}),
       ...(dashConfig.backgrounds || {}),
+    },
+    effects: {
+      ...DEFAULT_EFFECTS,
+      ...(windowConfig.effects || {}),
+      ...(dashConfig.effects || {}),
     },
   };
 }
@@ -110,16 +418,11 @@ async function discoverWeatherEntity(hass) {
     return null;
   }
 
-  // Prefer common names
-  const preferred = [
-    "weather.home",
-    "weather.forecast_home",
-  ];
+  const preferred = ["weather.home", "weather.forecast_home"];
   for (const name of preferred) {
     if (weatherEntities.includes(name)) return name;
   }
 
-  // Fall back to first weather entity
   return weatherEntities[0];
 }
 
@@ -179,13 +482,9 @@ function applyVideoBackground(root, src) {
   video.playsInline = true;
   video.src = src;
   Object.assign(video.style, {
-    position: "fixed",
-    top: "0",
-    left: "0",
-    width: "100vw",
-    height: "100vh",
-    objectFit: "cover",
-    zIndex: "-1",
+    position: "fixed", top: "0", left: "0",
+    width: "100vw", height: "100vh",
+    objectFit: "cover", zIndex: "-1",
     pointerEvents: "none",
   });
 
@@ -195,6 +494,65 @@ function applyVideoBackground(root, src) {
     huiRootShadow.insertBefore(video, root);
   }
 }
+
+// ── Effects ────────────────────────────────────────────────────────
+
+let _activeEffect = null;
+let _activeEffectName = null;
+
+function removeEffect() {
+  if (_activeEffect) {
+    _activeEffect();
+    _activeEffect = null;
+    _activeEffectName = null;
+  }
+}
+
+function applyEffect(config, weather) {
+  const effectName = config.effects[weather];
+
+  // No effect for this weather
+  if (!effectName) {
+    removeEffect();
+    return;
+  }
+
+  // Effect set to false/null = explicitly disabled
+  if (effectName === false || effectName === "none") {
+    removeEffect();
+    return;
+  }
+
+  // Same effect already running
+  if (_activeEffectName === effectName) return;
+
+  removeEffect();
+
+  // Resolve the effect function
+  let effectFn;
+  if (typeof effectName === "function") {
+    effectFn = effectName;
+  } else if (typeof effectName === "string") {
+    if (BUILT_IN_EFFECTS[effectName]) {
+      effectFn = BUILT_IN_EFFECTS[effectName];
+    } else {
+      console.warn(`weather-backgrounds: Unknown effect "${effectName}"`);
+      return;
+    }
+  } else {
+    return;
+  }
+
+  // Find a container to inject into
+  const huiRoot = findHuiRoot();
+  const container = huiRoot?.shadowRoot;
+  if (!container) return;
+
+  _activeEffectName = effectName;
+  _activeEffect = effectFn(container);
+}
+
+// ── Apply all ──────────────────────────────────────────────────────
 
 function applyBackground(root, bg) {
   if (!bg) {
@@ -227,10 +585,8 @@ async function init() {
     if (!hass) await new Promise((r) => setTimeout(r, 500));
   }
 
-  // Resolve config (may need to wait for hui-root to be ready)
   let config = getConfig();
 
-  // Auto-discover entity if not configured
   let entity = config.entity;
   if (!entity) {
     entity = await discoverWeatherEntity(hass);
@@ -241,22 +597,21 @@ async function init() {
 
   hass.connection.subscribeMessage(
     (result) => {
-      // Only activate if the current view has weather_backgrounds in its config
       const dashConfig = getDashboardConfig();
       if (!dashConfig) {
-        // No weather_backgrounds key in this view — clean up and skip
         const root = findViewBackground();
         if (root) applyBackground(root, null);
+        removeEffect();
         return;
       }
 
-      // Re-read full config
       config = getConfig();
       if (!config.entity) config.entity = entity;
 
       if (!isAllowedDashboard(config)) {
         const root = findViewBackground();
         if (root) applyBackground(root, null);
+        removeEffect();
         return;
       }
 
@@ -267,6 +622,8 @@ async function init() {
       if (root) {
         applyBackground(root, bg);
       }
+
+      applyEffect(config, weather);
     },
     {
       type: "render_template",

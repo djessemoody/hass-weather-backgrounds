@@ -86,6 +86,33 @@ Supported formats:
 - **Videos**: `.mp4`, `.webm`, `.ogg` (autoplays muted and loops)
 - **CSS values**: gradients, solid colors, any valid CSS background
 
+## Effects
+
+Weather effects are enabled by default for matching weather states. Built-in effects:
+
+| Effect | Default for | Description |
+|--------|------------|-------------|
+| `snowfall` | snowy, snowy-rainy | Falling snowflakes |
+| `rain` | rainy, pouring, hail | Rain streaks |
+| `lightning_flash` | lightning, lightning-rainy | Random lightning flashes |
+| `fog_drift` | fog | Drifting fog layer |
+| `stars` | clear-night | Twinkling stars |
+| `wind_streaks` | windy, windy-variant | Horizontal wind lines |
+
+### Override or disable effects
+
+```yaml
+weather_backgrounds:
+  effects:
+    # Use a different built-in effect
+    cloudy: fog_drift
+    # Disable effect for a state
+    rainy: none
+    # Disable all effects
+    snowy: none
+    sunny: none
+```
+
 ## Compatibility
 
 - Home Assistant 2024.0.0+
