@@ -1,0 +1,7 @@
+{
+  "name": "Weather Backgrounds",
+  "render_readme": true,
+  "content_in_root": false,
+  "filename": "weather-backgrounds.js",
+  "homeassistant": "2024.0.0"
+}
