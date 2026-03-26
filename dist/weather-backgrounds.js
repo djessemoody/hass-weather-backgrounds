@@ -237,12 +237,20 @@ async function init() {
 
   hass.connection.subscribeMessage(
     (result) => {
-      // Re-read config on each update in case view changed
+      // Only activate if the current view has weather_backgrounds in its config
+      const dashConfig = getDashboardConfig();
+      if (!dashConfig) {
+        // No weather_backgrounds key in this view — clean up and skip
+        const root = findViewBackground();
+        if (root) applyBackground(root, null);
+        return;
+      }
+
+      // Re-read full config
       config = getConfig();
       if (!config.entity) config.entity = entity;
 
       if (!isAllowedDashboard(config)) {
-        // Clean up if we navigated away from an allowed dashboard
         const root = findViewBackground();
         if (root) applyBackground(root, null);
         return;

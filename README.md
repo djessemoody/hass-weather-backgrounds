@@ -2,7 +2,7 @@
 
 Dynamically changes your Home Assistant dashboard background based on the current weather. Ships with default images for all 15 weather conditions, supports images, videos, and CSS gradients.
 
-Works out of the box with zero configuration.
+Add `weather_backgrounds:` to any dashboard view to enable it.
 
 ## Installation
 
@@ -31,22 +31,19 @@ sunny, clear-night, partlycloudy (video), cloudy, fog, rainy, pouring, lightning
 
 ## Configuration
 
-### Zero config (default)
+### Enable on a dashboard
 
-The plugin auto-discovers the first `weather.*` entity in your system. If you only have one weather integration, no configuration is needed.
-
-### Dashboard YAML
-
-Add a `weather_backgrounds` key to your view config:
+Add `weather_backgrounds:` to your view config to enable it. The plugin auto-discovers your weather entity:
 
 ```yaml
 views:
   - title: Home
     weather_backgrounds:
-      entity: weather.my_station
 ```
 
-Full options:
+That's it — auto-discovers your weather entity and uses the default images.
+
+### Customize:
 
 ```yaml
 views:
