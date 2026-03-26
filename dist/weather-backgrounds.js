@@ -271,6 +271,92 @@ const BUILT_IN_EFFECTS = {
     };
   },
 
+  sun_rays: (container) => {
+    const el = document.createElement("div");
+    Object.assign(el.style, {
+      position: "fixed", top: "-20%", right: "-10%",
+      width: "60vw", height: "60vw",
+      pointerEvents: "none", zIndex: "0",
+      borderRadius: "50%",
+      background: "radial-gradient(circle, rgba(255,236,170,0.25) 0%, rgba(255,200,50,0.08) 40%, transparent 70%)",
+      animation: "wb-sun-pulse 8s ease-in-out infinite alternate",
+    });
+    container.appendChild(el);
+
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes wb-sun-pulse {
+        0% { transform: scale(1); opacity: 0.6; }
+        50% { transform: scale(1.15); opacity: 0.9; }
+        100% { transform: scale(1.05); opacity: 0.7; }
+      }
+    `;
+    container.appendChild(style);
+
+    return () => { el.remove(); style.remove(); };
+  },
+
+  cloud_shadows: (container) => {
+    const el1 = document.createElement("div");
+    const el2 = document.createElement("div");
+    const shared = {
+      position: "fixed", top: "0", left: "0",
+      width: "100vw", height: "100vh",
+      pointerEvents: "none", zIndex: "0",
+    };
+    Object.assign(el1.style, {
+      ...shared,
+      background: "radial-gradient(ellipse 40% 30% at 30% 40%, rgba(0,0,0,0.12) 0%, transparent 70%)",
+      animation: "wb-cloud-shadow-1 25s ease-in-out infinite alternate",
+    });
+    Object.assign(el2.style, {
+      ...shared,
+      background: "radial-gradient(ellipse 35% 25% at 60% 50%, rgba(0,0,0,0.08) 0%, transparent 70%)",
+      animation: "wb-cloud-shadow-2 30s ease-in-out infinite alternate",
+    });
+    container.appendChild(el1);
+    container.appendChild(el2);
+
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes wb-cloud-shadow-1 {
+        0% { transform: translateX(-10%) translateY(0); }
+        100% { transform: translateX(30%) translateY(5%); }
+      }
+      @keyframes wb-cloud-shadow-2 {
+        0% { transform: translateX(20%) translateY(5%); }
+        100% { transform: translateX(-15%) translateY(-3%); }
+      }
+    `;
+    container.appendChild(style);
+
+    return () => { el1.remove(); el2.remove(); style.remove(); };
+  },
+
+  warning_pulse: (container) => {
+    const overlay = document.createElement("div");
+    Object.assign(overlay.style, {
+      position: "fixed", top: "0", left: "0",
+      width: "100vw", height: "100vh",
+      pointerEvents: "none", zIndex: "0",
+      background: "radial-gradient(ellipse at center, rgba(255,60,0,0.12) 0%, rgba(200,0,0,0.06) 50%, transparent 80%)",
+      animation: "wb-warning-pulse 4s ease-in-out infinite alternate",
+    });
+    container.appendChild(overlay);
+
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes wb-warning-pulse {
+        0% { opacity: 0.3; }
+        50% { opacity: 0.7; }
+        100% { opacity: 0.4; }
+      }
+    `;
+    container.appendChild(style);
+
+    return () => { overlay.remove(); style.remove(); };
+  },
+
   wind_streaks: (container) => {
     const canvas = document.createElement("canvas");
     Object.assign(canvas.style, {
@@ -333,17 +419,21 @@ const BUILT_IN_EFFECTS = {
 
 // Default effects for weather states (use built-in names)
 const DEFAULT_EFFECTS = {
-  snowy: "snowfall",
-  "snowy-rainy": "snowfall",
+  sunny: "sun_rays",
+  "clear-night": "stars",
+  partlycloudy: "cloud_shadows",
+  cloudy: "cloud_shadows",
+  fog: "fog_drift",
   rainy: "rain",
   pouring: "rain",
   lightning: "lightning_flash",
   "lightning-rainy": "lightning_flash",
-  fog: "fog_drift",
-  "clear-night": "stars",
+  snowy: "snowfall",
+  "snowy-rainy": "snowfall",
+  hail: "rain",
   windy: "wind_streaks",
   "windy-variant": "wind_streaks",
-  hail: "rain",
+  exceptional: "warning_pulse",
 };
 
 // ── DOM traversal helpers ──────────────────────────────────────────
