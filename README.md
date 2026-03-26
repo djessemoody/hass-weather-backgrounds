@@ -92,12 +92,15 @@ Weather effects are enabled by default for matching weather states. Built-in eff
 
 | Effect | Default for | Description |
 |--------|------------|-------------|
-| `snowfall` | snowy, snowy-rainy | Falling snowflakes |
-| `rain` | rainy, pouring, hail | Rain streaks |
-| `lightning_flash` | lightning, lightning-rainy | Random lightning flashes |
-| `fog_drift` | fog | Drifting fog layer |
+| `sun_rays` | sunny | Warm pulsing sun glow |
 | `stars` | clear-night | Twinkling stars |
+| `cloud_shadows` | partlycloudy, cloudy | Drifting cloud shadows |
+| `fog_drift` | fog | Slow-moving fog layer |
+| `rain` | rainy, pouring, hail | Angled rain streaks |
+| `lightning_flash` | lightning, lightning-rainy | Random lightning flashes |
+| `snowfall` | snowy, snowy-rainy | Falling snowflakes |
 | `wind_streaks` | windy, windy-variant | Horizontal wind lines |
+| `warning_pulse` | exceptional | Pulsing red/orange warning glow |
 
 ### Override or disable effects
 
