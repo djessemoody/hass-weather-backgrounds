@@ -72,7 +72,11 @@ function getDashboardConfig() {
     if (curView === undefined || curView === "hass-unused-entities") return null;
 
     const viewConfig = lovelace.config.views[curView];
-    return viewConfig?.weather_backgrounds || null;
+    const wb = viewConfig?.weather_backgrounds;
+    // Support: weather_backgrounds: true, weather_backgrounds: {}, weather_backgrounds:
+    if (wb === undefined) return null;
+    if (wb === true || wb === null) return {};
+    return wb;
   } catch {
     return null;
   }
