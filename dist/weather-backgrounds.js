@@ -589,6 +589,7 @@ function applyVideoBackground(root, src) {
 
 let _activeEffect = null;
 let _activeEffectName = null;
+let _lastWeather = null;
 
 function removeEffect() {
   if (_activeEffect) {
@@ -660,6 +661,37 @@ function applyBackground(root, bg) {
   }
 }
 
+// ── Apply logic ────────────────────────────────────────────────────
+
+function applyWeather(weather, entity) {
+  const dashConfig = getDashboardConfig();
+  if (!dashConfig) {
+    const root = findViewBackground();
+    if (root) applyBackground(root, null);
+    removeEffect();
+    return;
+  }
+
+  let config = getConfig();
+  if (!config.entity) config.entity = entity;
+
+  if (!isAllowedDashboard(config)) {
+    const root = findViewBackground();
+    if (root) applyBackground(root, null);
+    removeEffect();
+    return;
+  }
+
+  const bg = getBackground(config, weather);
+
+  const root = findViewBackground();
+  if (root) {
+    applyBackground(root, bg);
+  }
+
+  applyEffect(config, weather);
+}
+
 // ── Init ───────────────────────────────────────────────────────────
 
 async function init() {
@@ -687,39 +719,22 @@ async function init() {
 
   hass.connection.subscribeMessage(
     (result) => {
-      const dashConfig = getDashboardConfig();
-      if (!dashConfig) {
-        const root = findViewBackground();
-        if (root) applyBackground(root, null);
-        removeEffect();
-        return;
-      }
-
-      config = getConfig();
-      if (!config.entity) config.entity = entity;
-
-      if (!isAllowedDashboard(config)) {
-        const root = findViewBackground();
-        if (root) applyBackground(root, null);
-        removeEffect();
-        return;
-      }
-
-      const weather = result.result.trim();
-      const bg = getBackground(config, weather);
-
-      const root = findViewBackground();
-      if (root) {
-        applyBackground(root, bg);
-      }
-
-      applyEffect(config, weather);
+      _lastWeather = result.result.trim();
+      applyWeather(_lastWeather, entity);
     },
     {
       type: "render_template",
       template: template,
     }
   );
+
+  // Re-apply on navigation (HA fires this when switching dashboards/views)
+  window.addEventListener("location-changed", () => {
+    if (_lastWeather) {
+      // Small delay to let HA render the new view's DOM
+      setTimeout(() => applyWeather(_lastWeather, entity), 100);
+    }
+  });
 
   console.info(
     "%c WEATHER-BACKGROUNDS ",
